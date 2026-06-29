@@ -1,0 +1,1 @@
+{"model_name": "facebook/wav2vec2-base-960h", "target_sr": 16000, "max_seconds": 12.0, "target_keys": ["Valence_best", "Arousal_best", "Submissive_vs._Dominant_best", "Serious_vs._Humorous_best"], "head": {"d_model": 768, "hidden": 128, "out_dim": 4}}
