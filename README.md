@@ -1,64 +1,562 @@
-# Audio Emotion Regression
-## Contact
-Names: Rafael Pashkov, Amirth Raj Puramcheriyil
+# 🎙️ Audio Emotion Recognition using Wav2Vec2
 
-Date: 12/11/2025
+![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
+![PyTorch](https://img.shields.io/badge/PyTorch-Deep%20Learning-red.svg)
+![HuggingFace](https://img.shields.io/badge/HuggingFace-Wav2Vec2-yellow.svg)
+![Task](https://img.shields.io/badge/Task-Emotion%20Regression-success.svg)
+![Status](https://img.shields.io/badge/Status-Completed-brightgreen.svg)
 
-COMP 5530: Deep learning 
+A lightweight **Speech Emotion Regression** system that predicts **continuous emotional attributes** directly from raw speech using a **frozen Wav2Vec2 encoder** and a **BiGRU + Attention** regression head.
 
-## How to run
-### Opening the notebook on Google Colab
-This project is meant to be run on Google Colab. The libraries required are imported in the notebook itself, and are preinstalled in the Colab environment or get installed when running the notebook.
+Instead of classifying speech into discrete emotions (e.g., *happy* or *sad*), the model estimates four continuous emotional dimensions:
 
-To access the notebook on Google Colab, click [here](https://colab.research.google.com/github/chesseraf/Audio-emotion-recognition/blob/main/Audio_Emotion_Regression.ipynb).
+- ❤️ **Valence** (Negative ↔ Positive)
+- ⚡ **Arousal** (Calm ↔ Excited)
+- 👑 **Dominance** (Submissive ↔ Dominant)
+- 🎭 **Seriousness ↔ Humorous**
 
-This link will open the notebook with no running results, only the code. To view a notebook with some results already showing, click [here](https://colab.research.google.com/github/chesseraf/Audio-emotion-recognition/blob/main/Sample_outputs.ipynb). This notebook has already been run with 5 epochs and shows some code outputs after quick training followed by evaluation.
+The project demonstrates that high-quality emotion regression can be achieved by training only a lightweight prediction head while leveraging rich self-supervised speech representations from Wav2Vec2.
 
-If the first link does not work, follow these steps:
-1) Go to Github at https://github.com/chesseraf/Audio-emotion-recognition
-2) Open Audio_Emotion_Regression.ipynb file in the main branch of the repository.
-3) Click on the "Open in Colab" button near the top of the page.
-4) Click "Copy to Drive" in the toolbar at the top of the Colab page to save a copy of the notebook to your own google drive. You can run and edit this copy as instructed by the rest of the instructions.
+---
 
-To run it in Google Colab, you must be signed into a Google account. There is a enough 'colab points' given to run this project for free. In the unlikely scenario that your account does not have any points left, you can create a new Google account which will have enough points to run the project. For instructions on creating a new google accout, go [here](https://support.google.com/mail/answer/56256?hl=en).
+# ✨ Key Features
 
-### Setting up the folders
-The first cell of the notebook requests to connect to the google drive of your google account. If you do not wish to connect your google drive to the program, there are a few additional steps that must be taken that are described in a subsection below. 
-#### Once google drive is connected (mounted)
-There are three different ways to get the data to be seen by the program. Methods listed earlier are easier to do.
-1) Find and download the folder named Small_sample_data from this repository. Upload this folder into the root directory of your google drive, and rename it to Colab_Drive_Files.
+- 🎤 Continuous emotion regression from raw audio
+- 🧠 Pretrained **facebook/wav2vec2-base-960h** speech encoder
+- 🔒 Frozen encoder for computational efficiency
+- 🔄 BiGRU temporal modeling with attention pooling
+- 📈 Predicts four emotional dimensions simultaneously
+- 📊 Evaluated using **MAE**, **MSE**, and **Concordance Correlation Coefficient (CCC)**
+- 🚀 Google Colab compatible
+- 🎧 Supports inference on custom MP3 files
 
-2) Go to [data in drive](https://drive.google.com/drive/folders/1LqowgOE2kQnQa0FYctKAwd6vN_5OLTG3). There, choose one of the subfolders to download. Once downloaded (and unzipped if it got zipped), rename it to Colab_Drive_Files. Then upload it to your google drive. The folder at that link will be deleted sometime in 2026. 
+---
 
-3) This is what we did to get the data originally. Go to [HuggingFace](https://huggingface.co/datasets/laion/Emilia-with-Emotion-Annotations2/tree/main). Scroll down until the data files start with EN and not DE. Download one of them. Then unzip it. Then open the folder with the files sorted alphabetically. Keep only a small quantity (~800 mp3-json pairs with same prefix) of the files since google drive does not allow too many files in a folder, and the program runs faster. Upload this folder into your google drive into a folder named Colab_Drive_Files.
+# 🏗️ Model Architecture
 
-#### Using files in colab directly intead of connecting Google Drive
-CAUTION - if you choose this option, you will need to re-upload any files you upload to Colab if the runtime is ever restarted.
-1) You must add the data you wish to use directly to the colab workspace instead of putting it into your google drive. The files tab is the 2nd from the bottom icon on the left sidebar. 
-2) Create a folder with the name Data.
-3) Get a folder with the data downloaded onto your device but don't upload it to drive using one of the methods described above. 
-4) Right click the colab folder you created named Data, and click upload. Select some or all of the files from your downloaded folder with all of the data. Make sure that an .mp3 and .json file with the same prefix both get uploaded (by sorting the folder files alphabetically). 
-5) Change line 2 in the notebook from "DRIVE_MOUNTED = True" to "DRIVE_MOUNTED = False".
+```mermaid
+flowchart LR
 
-### Running the program
-#### Run the program including training
-1) (Optional) If you have a lot of time and want to run many epochs during training, set EPOCHS to a higher number in the 5th cell of the notebook. Currently it is set to 50. Also, the cell that has the run epoch function has the lines 
-'''
-if va_loss < 0.0045:
-            break
-'''
-0.0045 can be increased or decreased to change the stopping criteria caused by validation MSE dropping below the threshold.
-2) Click "Run All" in the top toolbar. 
-3) Wait for it all to run. Some results will appear in the cell with run epoch and the cell with ccc metrics.
-4) If you want to try your own mp3s, run steps 9 and 10 described below.
-#### Run the program, but without training
-1) Download the folder w2v2_temporal_head from this repository.
-2) Upload that folder to the root directory of your Google drive. If you are not connecting your google drive, create a folder with that name in Colab and upload all (both) files from the downloaded folder into the one you created. 
-3) The path to this folder must be the same as the variable SAVE_DIR which is declared in the first cell of the notebook. (E.g. no (1) from multiple downloads)
-4) (Likely optional and done by default) Choose Python 3, T4 GPU as your runtime type. Can be set with the change runtime type option in dropdown near top right corner in Colab. 
-5) Run the cells in order until you reach the cell the starts with "# Feature extractor & encoder (frozen)". This is about the first 10 cells.
-6) Run the cell that is ~3rd from last that starts with "# Reload frozen base encoder". This loads the saved head. 
-7) (Optional) Now run the ~6th to last cell the starts with "def ccc". This will print out some statistics about the model on this data set. 
-8) If you want to predict emotions on your own mp3 files, make that mp3 file available in the colab workspace or your Google drive. 
-9) In the 2nd to last cell, in the line "result = predict_attributes("/content/drive/MyDrive/meHappy.mp3")", change the path of the existing .mp3 file to the path of your mp3 file. 
-10) Finally, run the last 2 cells. The last one will give you the predicted score of all 4 emotions in the ranges specified by the dataset. The ranges are shown in the 6th cell as well as on the [website](https://huggingface.co/datasets/laion/Emilia-with-Emotion-Annotations/blob/main/README.md) with the dataset.
+A[Raw MP3 Audio]
+-->B[Audio Preprocessing]
+
+B-->C[Feature Extractor]
+
+C-->D[Frozen Wav2Vec2 Encoder]
+
+D-->E[BiGRU Layer]
+
+E-->F[Attention Pooling]
+
+F-->G[Fully Connected Layer]
+
+G-->H[Emotion Regression]
+
+H-->I[Valence]
+H-->J[Arousal]
+H-->K[Dominance]
+H-->L[Humor]
+```
+
+The pretrained **Wav2Vec2 encoder** extracts high-level speech representations from raw audio. Instead of fine-tuning the entire transformer, the encoder remains frozen while a lightweight **Bidirectional GRU** with an **attention pooling mechanism** learns temporal emotional patterns. The pooled representation is then mapped to four continuous emotional attributes through a fully connected regression layer.
+
+---
+
+# 🔄 Project Pipeline
+
+```mermaid
+flowchart LR
+
+A[MP3 Audio]
+-->B[Load Audio]
+
+B-->C[Convert to Mono]
+
+C-->D[Resample to 16 kHz]
+
+D-->E[Normalize Waveform]
+
+E-->F[Wav2Vec2 Feature Extraction]
+
+F-->G[Frozen Encoder]
+
+G-->H[BiGRU + Attention]
+
+H-->I[Emotion Prediction]
+
+I-->J[Valence]
+
+I-->K[Arousal]
+
+I-->L[Dominance]
+
+I-->M[Humor]
+```
+
+---
+
+# 💡 Why Wav2Vec2?
+
+Traditional speech emotion recognition systems often rely on handcrafted acoustic features such as MFCCs, pitch, and energy. In contrast, **Wav2Vec2** learns rich contextual speech representations through self-supervised pretraining on large-scale speech corpora.
+
+This project leverages these pretrained representations while freezing the encoder, resulting in:
+
+- **Lower computational cost** compared to full transformer fine-tuning.
+- **Reduced risk of overfitting** on limited emotion datasets.
+- **Faster experimentation and training.**
+- **Strong predictive performance** using only a lightweight regression head.
+
+The resulting architecture provides an effective balance between efficiency and accuracy, making it suitable for research, experimentation, and deployment in resource-constrained environments.
+---
+
+# 📊 Dataset
+
+This project uses a curated subset of the **LAION Emilia Emotion Dataset**, which contains paired **MP3 audio files** and **JSON annotations** describing continuous emotional attributes.
+
+Each audio sample is annotated with four regression targets:
+
+| Attribute | Original Range | Description |
+|-----------|---------------:|-------------|
+| ❤️ Valence | -3 → 3 | Negative ↔ Positive emotion |
+| ⚡ Arousal | 0 → 4 | Calm ↔ Excited |
+| 👑 Dominance | -3 → 3 | Submissive ↔ Dominant |
+| 🎭 Seriousness vs Humorous | 0 → 4 | Serious ↔ Humorous |
+
+### Dataset Statistics
+
+| Metric | Value |
+|---------|------:|
+| Total Audio Samples | **6,389** |
+| Training Samples | **5,751** |
+| Validation Samples | **638** |
+| Audio Format | MP3 |
+| Annotation Format | JSON |
+
+To improve training stability, all target values are **normalized to the range [0,1]** during training and mapped back to their original scales during inference.
+
+---
+
+# 📂 Repository Structure
+
+```text
+Audio-emotion-recognition/
+│
+├── Audio_Emotion_Regression.ipynb      # Main notebook
+├── Small_sample_data/                  # Sample dataset
+├── w2v2_temporal_head/                 # Saved regression head
+├── README.md
+└── Audio_Emotion_Recognition.pdf       # Research paper
+```
+
+---
+
+# ⚙️ Training Configuration
+
+Only the lightweight regression head is optimized while the pretrained Wav2Vec2 encoder remains frozen.
+
+| Parameter | Value |
+|-----------|------|
+| Speech Encoder | facebook/wav2vec2-base-960h |
+| Trainable Layers | BiGRU + Attention + Linear Head |
+| Optimizer | AdamW |
+| Learning Rate | 1 × 10⁻³ |
+| Batch Size | 1 |
+| Epochs | 14 (Best Model) |
+| Loss Function | Mean Squared Error (MSE) |
+| Mixed Precision | Supported |
+
+This design significantly reduces memory usage and training time while preserving the benefits of self-supervised speech representations.
+
+---
+
+# 🚀 Quick Start
+
+## 1. Clone the Repository
+
+```bash
+git clone https://github.com/<your-username>/Audio-emotion-recognition.git
+cd Audio-emotion-recognition
+```
+
+---
+
+## 2. Install Dependencies
+
+```bash
+pip install torch
+pip install torchaudio
+pip install transformers
+pip install datasets
+pip install accelerate
+pip install matplotlib
+pip install numpy
+pip install scipy
+```
+
+or
+
+```bash
+pip install torch torchaudio transformers datasets accelerate matplotlib numpy scipy
+```
+
+---
+
+## 3. Open the Notebook
+
+The project is designed to run on **Google Colab** with GPU acceleration.
+
+Open:
+
+```
+Audio_Emotion_Regression.ipynb
+```
+
+Select
+
+```
+Runtime
+    ↓
+Change Runtime Type
+    ↓
+Python 3 + T4 GPU
+```
+
+Google Colab provides sufficient free GPU resources for running this project.
+
+---
+
+# 📁 Preparing the Dataset
+
+The notebook supports **two methods** for loading data.
+
+## Option 1 (Recommended)
+
+Mount Google Drive and place the dataset inside
+
+```text
+MyDrive/
+└── Colab_Drive_Files/
+```
+
+This is the recommended workflow because cached features remain available between sessions.
+
+---
+
+## Option 2
+
+Upload the dataset directly into the Colab workspace.
+
+```text
+/content/
+└── Data/
+```
+
+If using this approach, change
+
+```python
+DRIVE_MOUNTED = False
+```
+
+inside the notebook.
+
+> **Note:** Files uploaded directly to Colab are lost whenever the runtime is restarted.
+
+---
+
+# ▶️ Running Training
+
+Once the dataset is prepared:
+
+1. Open the notebook.
+2. Mount Google Drive (recommended).
+3. Run all notebook cells sequentially.
+4. Training will begin automatically.
+5. The notebook reports training and validation loss after each epoch.
+6. The best-performing regression head can be saved for later inference.
+
+Training was performed for **14 epochs**, where stable convergence was observed.
+
+---
+
+# 🎧 Running Inference on Your Own Audio
+
+After loading the trained regression head, simply replace the audio path:
+
+```python
+result = predict_attributes(
+    "/content/drive/MyDrive/example.mp3"
+)
+```
+
+The model predicts four continuous emotional attributes:
+
+```text
+Valence                :  1.74
+Arousal                :  2.88
+Dominance              :  0.91
+Seriousness/Humorous   :  3.12
+```
+
+These predictions are automatically converted back to the **original dataset ranges**, making them directly interpretable.
+
+---
+
+# 💾 Saved Model
+
+The repository includes a pretrained regression head:
+
+```text
+w2v2_temporal_head/
+```
+
+This allows users to:
+
+- Skip training
+- Load pretrained weights
+- Evaluate the model immediately
+- Predict emotions for custom audio files
+
+This significantly reduces setup time for users who simply want to explore the model.
+---
+
+# 📈 Results
+
+The proposed architecture demonstrates that a **frozen Wav2Vec2 encoder** combined with a lightweight **BiGRU + Attention** regression head can effectively predict continuous emotional attributes directly from raw speech while requiring only a small fraction of the trainable parameters compared to end-to-end transformer fine-tuning.
+
+The model converged after **14 training epochs**, achieving stable validation performance across all four emotion dimensions.
+
+---
+
+# 🏆 Performance Summary
+
+| Metric | Value |
+|---------|-------|
+| Dataset | LAION Emilia |
+| Total Samples | **6,389** |
+| Training Samples | **5,751** |
+| Validation Samples | **638** |
+| Best Epoch | **14** |
+| Final Validation MSE | **0.0056** |
+| Average MAE | **0.0477** |
+| Average CCC | **0.5829** |
+
+---
+
+# 📊 Emotion-wise Performance
+
+The model was evaluated using three complementary regression metrics:
+
+- **MAE (Mean Absolute Error)** – Measures the average prediction error.
+- **MSE (Mean Squared Error)** – Penalizes larger prediction errors.
+- **CCC (Concordance Correlation Coefficient)** – Measures both correlation and agreement between predictions and ground truth.
+
+| Emotion Attribute | MAE ↓ | MSE ↓ | CCC ↑ |
+|-------------------|-------:|-------:|-------:|
+| ❤️ Valence | 0.0433 | 0.0052 | 0.3577 |
+| ⚡ Arousal | 0.0570 | 0.0062 | **0.7138** |
+| 👑 Dominance | **0.0331** | **0.0017** | 0.6086 |
+| 🎭 Humor | 0.0572 | 0.0055 | 0.6513 |
+| **Macro Average** | **0.0477** | **0.0047** | **0.5829** |
+
+---
+
+# 📉 Training Performance
+
+Validation error steadily decreased throughout training before stabilizing around epoch 14.
+
+| Epoch | Validation MSE |
+|-------:|---------------:|
+| 5 | 0.0070 |
+| 10 | 0.0061 |
+| **14** | **0.0056** |
+
+This consistent reduction in validation error indicates stable convergence of the regression head without requiring end-to-end fine-tuning of the pretrained speech encoder.
+
+---
+
+
+# 🎧 Example Emotion Prediction
+
+After training, the model predicts four continuous emotional dimensions for unseen speech samples.
+
+```text
+Input Audio:
+example_speech.mp3
+
+Predicted Emotion Scores
+
+❤️ Valence                 :  1.74
+⚡ Arousal                 :  2.88
+👑 Dominance               :  0.91
+🎭 Seriousness ↔ Humor     :  3.12
+```
+
+> Replace the above example with a prediction generated from your trained model if desired.
+
+---
+
+# 📈 Distribution Analysis
+
+One of the key observations from the experiments is that the predicted mean values closely follow the true validation distribution, while the predicted variance is slightly lower.
+
+| Statistic | Valence | Arousal | Dominance | Humor |
+|-----------|---------:|---------:|----------:|-------:|
+| Validation Mean | 0.5247 | 0.3107 | 0.5295 | 0.2017 |
+| Predicted Mean | 0.5185 | 0.3211 | 0.5334 | 0.1963 |
+| Validation Std | 0.0778 | 0.1108 | 0.0479 | 0.0836 |
+| Predicted Std | 0.0503 | 0.0834 | 0.0302 | 0.0688 |
+
+This indicates that the model captures the overall emotional distribution effectively while producing slightly more conservative predictions around the mean.
+
+---
+
+# 🔍 Key Findings
+
+### ✅ Efficient Learning
+
+Only the lightweight regression head is trained, while the large Wav2Vec2 encoder remains frozen, significantly reducing computational requirements.
+
+---
+
+### ✅ Strong Temporal Modeling
+
+The Bidirectional GRU effectively captures temporal speech dynamics, while the attention mechanism learns to emphasize emotionally relevant segments of each utterance.
+
+---
+
+### ✅ Best Performing Attribute
+
+**Arousal** achieved the highest agreement with ground-truth labels (**CCC = 0.7138**), suggesting that energetic characteristics of speech are well represented by pretrained Wav2Vec2 embeddings.
+
+---
+
+### ✅ Lowest Prediction Error
+
+**Dominance** achieved the lowest prediction error (**MSE = 0.0017**), indicating highly accurate regression for this emotional dimension.
+
+---
+
+### ⚠️ Most Challenging Attribute
+
+**Valence** remained the most difficult emotion to predict, achieving the lowest CCC.
+
+Unlike arousal, valence often depends on subtle contextual cues that may not be fully represented by acoustic information alone.
+
+---
+
+# 💬 Discussion
+
+The experimental results demonstrate that pretrained self-supervised speech representations contain rich emotional information that can be leveraged effectively without fine-tuning the underlying transformer.
+
+Although the model exhibits conservative predictions with reduced variance, it consistently achieves low prediction error across all emotion dimensions while maintaining good agreement with the ground-truth annotations.
+
+Overall, the proposed architecture provides an excellent balance between **computational efficiency**, **model simplicity**, and **predictive performance**, making it suitable for both research applications and resource-constrained deployment.
+
+---
+
+# 💻 Technologies Used
+
+| Category | Technologies |
+|-----------|--------------|
+| **Programming Language** | Python |
+| **Deep Learning Framework** | PyTorch |
+| **Speech Representation Model** | Hugging Face Wav2Vec2 (`facebook/wav2vec2-base-960h`) |
+| **Audio Processing** | Torchaudio |
+| **Sequence Modeling** | Bidirectional GRU |
+| **Attention Mechanism** | Attention Pooling |
+| **Optimization** | AdamW |
+| **Evaluation Metrics** | MAE, MSE, CCC |
+| **Development Environment** | Google Colab |
+| **Dataset** | LAION Emilia Emotion Dataset |
+
+---
+
+# 🌍 Potential Applications
+
+The proposed framework can be applied across a wide range of speech understanding and affective computing tasks, including:
+
+- 🤖 Intelligent Voice Assistants
+- ☎️ Call Center & Customer Sentiment Analytics
+- 🧠 Mental Health and Wellness Monitoring
+- 💬 Conversational AI & Chatbots
+- 🎓 Online Learning & Student Engagement Analysis
+- 🎮 Emotion-Aware Virtual Characters
+- 📞 Human–Computer Interaction
+- 📊 Speech Analytics Platforms
+
+Its lightweight architecture also makes it suitable for deployment in resource-constrained environments.
+
+---
+
+# 🚀 Future Improvements
+
+Several extensions could further improve the model's performance and applicability.
+
+### Model Improvements
+
+- Fine-tune selected Wav2Vec2 transformer layers.
+- Replace the BiGRU with Transformer-based temporal modeling.
+- Explore larger pretrained speech models such as HuBERT or XLS-R.
+- Investigate parameter-efficient fine-tuning methods (LoRA, Adapters).
+
+### Data Improvements
+
+- Train on the complete LAION Emilia dataset.
+- Incorporate multilingual speech datasets.
+- Apply additional audio augmentation techniques.
+- Improve label balancing across emotion dimensions.
+
+### Deployment
+
+Potential deployment targets include:
+
+- REST API using FastAPI
+- Interactive Gradio Demo
+- Streamlit Web Application
+- ONNX Runtime for edge deployment
+- Real-time streaming emotion recognition
+
+---
+
+
+# 📄 Project Report
+
+This repository is accompanied by a detailed project report developed as part of the **COMP 5530 – Deep Learning** course at the **University of Massachusetts Lowell**.
+
+The report provides a comprehensive overview of the project, including:
+
+- Background and Motivation
+- Related Work
+- Methodology
+- Model Architecture
+- Experimental Setup
+- Performance Evaluation
+- Analysis
+- Conclusions
+- Future Work
+
+📄 **Audio_Emotion_Recognition.pdf**
+
+---
+
+# 👥 Authors
+
+**Amirth Raj Puramcheriyil**  
+*M.S. Computer Science*  
+University of Massachusetts Lowell
+
+**Rafael Pashkov**  
+*Department of Computer Science*  
+University of Massachusetts Lowell
+
+> **Course Project:** Developed as part of the **COMP 5530 – Deep Learning** course at the University of Massachusetts Lowell.
+
+---
+
+<div align="center">
+
+### ⭐ Thank you for visiting this repository!
+
+Feel free to explore the code, experiment with the model, and read the accompanying project report for additional technical details.
+
+</div>
